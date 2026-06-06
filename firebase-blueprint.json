@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "TutorApplication": {
+      "title": "TutorApplication",
+      "description": "Application submitted by volunteers to tutor Mathematics or Computer Science.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "description": "Applicant's complete legal name" },
+        "email": { "type": "string", "description": "Primary communication email" },
+        "whatsapp": { "type": "string", "description": "WhatsApp number with country code" },
+        "schoolUniversity": { "type": "string", "description": "Current school or university name" },
+        "majorGrade": { "type": "string", "description": "Current major study or high school grade level" },
+        "subjects": { "type": "array", "description": "Allowed tracks: Mathematics or Computer Science only" },
+        "bio": { "type": "string", "description": "Brief description of background and interest" },
+        "hoursPerWeek": { "type": "number", "description": "Available tutoring hours per week" },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "email", "whatsapp", "schoolUniversity", "majorGrade", "subjects", "bio", "hoursPerWeek"]
+    },
+    "StudentRegistration": {
+      "title": "StudentRegistration",
+      "description": "Information stored for middle school student registrants synced with authenticated user UIDs.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "description": "Registered student's name" },
+        "parentEmail": { "type": "string", "description": "Email address of parent" },
+        "parentWhatsapp": { "type": "string", "description": "WhatsApp contact of parent with country code" },
+        "gradeLevel": { "type": "string", "description": "Middle school grade level e.g. Grade 7" },
+        "subjects": { "type": "array", "description": "Subject interests (Mathematics and/or Computer Science)" },
+        "location": { "type": "string", "description": "City or province name in Saudi Arabia" },
+        "userUid": { "type": "string", "description": "Firebase authenticated user's unique identifier" },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "parentEmail", "parentWhatsapp", "gradeLevel", "subjects", "location", "userUid"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Direct user messages and submissions logged on-site.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Message sender name" },
+        "email": { "type": "string", "description": "Sender communication email" },
+        "subject": { "type": "string", "description": "Message topic heading" },
+        "message": { "type": "string", "description": "Full text payload" },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "subject", "message"]
+    },
+    "CalendarEvent": {
+      "title": "CalendarEvent",
+      "description": "Class or custom peer meeting registered on Google calendar sync timeline.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Session topic name" },
+        "description": { "type": "string", "description": "Meeting goals or focus description" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "meetLink": { "type": "string", "description": "Valid Google Meet room URL reference" },
+        "type": { "type": "string", "enum": ["general", "class", "mentorship"] },
+        "discordUser": { "type": "string", "description": "Required Discord Username of student locking the session" },
+        "userUid": { "type": "string", "description": "Authenticated student user UID executing the lock" }
+      },
+      "required": ["title", "description", "startTime", "endTime", "meetLink", "type", "discordUser", "userUid"]
+    },
+    "SystemLog": {
+      "title": "SystemLog",
+      "description": "Security tracking and execution logs captured on-site.",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "level": { "type": "string", "enum": ["info", "warn", "error", "security"] },
+        "message": { "type": "string", "description": "Log text message content" },
+        "caller": { "type": "string", "description": "Originating class or system module caller trigger" }
+      },
+      "required": ["timestamp", "level", "message", "caller"]
+    }
+  },
+  "firestore": {
+    "/tutors/{tutorId}": {
+      "schema": "TutorApplication",
+      "description": "Voluntary tutor submissions stored in database"
+    },
+    "/students/{studentId}": {
+      "schema": "StudentRegistration",
+      "description": "Registered students synced with authenticating auth user UID"
+    },
+    "/messages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "Contact messages typed in by viewers"
+    },
+    "/events/{eventId}": {
+      "schema": "CalendarEvent",
+      "description": "Lectures, classes, or student booking synced directly in real-time"
+    },
+    "/logs/{logId}": {
+      "schema": "SystemLog",
+      "description": "Trace logs for system audits"
+    }
+  }
+}
