@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      // Direct lookup under the /admins/ collection based on authenticated userID
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Tutor Application rules: anyone can submit, only administrators can read or list
+    match /tutors/{tutorId} {
+      allow create: if request.resource.data.fullName is string 
+                    && request.resource.data.fullName.size() <= 200
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() <= 200;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Student Registration rules: any signed-in user can create their student profile. 
+    // They can read their own record, but only administrators can read all or delete.
+    match /students/{studentId} {
+      allow create: if isSignedIn() 
+                    && request.resource.data.userUid == request.auth.uid
+                    && request.resource.data.fullName is string
+                    && request.resource.data.fullName.size() <= 200;
+      allow read: if isSignedIn() && (resource.data.userUid == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && resource.data.userUid == request.auth.uid && request.resource.data.userUid == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // Contact Messages: public submission, admin-only read/delete
+    match /messages/{messageId} {
+      allow create: if request.resource.data.name is string 
+                    && request.resource.data.name.size() <= 200
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Calendar Events: public read, but creation requires authenticated student verification
+    match /events/{eventId} {
+      allow read: if true;
+      allow create: if isSignedIn() 
+                    && request.resource.data.userUid == request.auth.uid
+                    && request.resource.data.discordUser is string
+                    && request.resource.data.discordUser.size() <= 100
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 300;
+      allow update, delete: if isAdmin();
+    }
+
+    // Logs: creation is allowed, reading is restricted to administrators
+    match /logs/{logId} {
+      allow create: if request.resource.data.message is string && request.resource.data.message.size() <= 1000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admins registry collections
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Block client-side alteration of roles directly
+    }
+  }
+}
