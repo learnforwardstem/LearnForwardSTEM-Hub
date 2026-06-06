@@ -1,0 +1,6 @@
+{
+  "name": "LearnForwardSTEM",
+  "description": "A student-led nonprofit initiative making high-quality STEM education accessible for middle school learners in Saudi Arabia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
